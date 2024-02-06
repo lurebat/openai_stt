@@ -113,7 +113,7 @@ class OpenAISTTProvider(Provider):
         async for chunk in stream:
             data += chunk
 
-        wav_stream = io.BytesIO(data)
+        wav_stream = io.BytesIO()
 
         with wave.open(wav_stream, 'w') as wav_file:
             wav_file.setnchannels(metadata.channel)
@@ -122,8 +122,8 @@ class OpenAISTTProvider(Provider):
 
             wav_file.writeframes(data)
             
+        wav_stream.seek(0)
 
-        wav =  wav_stream.getvalue() # wav file object 
 
 
         # OpenAI API endpoint for audio transcription
@@ -132,11 +132,10 @@ class OpenAISTTProvider(Provider):
         headers = {
             'Authorization': f'Bearer {self._api_key}',
             'api-key': self._api_key,
-            'Content-Type': 'multipart/form-data'
         }
         # Prepare the data for the POST request
         files = {
-            'file': ('filename.wav', wav, 'audio/wav')
+            'file': ('audio.wav', wav_stream, 'audio/wav')
         }
         data = {
             'language': self._language,
@@ -145,7 +144,7 @@ class OpenAISTTProvider(Provider):
         }
         async with async_timeout.timeout(10):
             async with httpx.AsyncClient() as client:
-                response = await client.post(url, headers=headers, files=files, data=data)
+                response = await client.post(url, headers=headers, data=data, files=files)
                 if response.status_code == 200:
                     return SpeechResult(
                         response.text,
