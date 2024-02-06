@@ -107,6 +107,11 @@ class OpenAISTTProvider(Provider):
         if metadata.format != AudioFormats.WAV:
             _LOGGER.error("Unsupported audio format: %s", metadata.format)
             return SpeechResult("", SpeechResultState.ERROR)
+        
+        data = b''
+
+        async for chunk in stream:
+            data += chunk
 
         wav_stream = io.BytesIO()
 
@@ -114,9 +119,9 @@ class OpenAISTTProvider(Provider):
             wav_file.setnchannels(metadata.channel)
             wav_file.setsampwidth(2)
             wav_file.setframerate(metadata.sample_rate)
+
+            wav_file.writeframes(data)
             
-            async for chunk in stream:
-                wav_file.writeframes(chunk)
 
         wav =  wav_stream.getvalue() # wav file object 
 
