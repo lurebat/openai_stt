@@ -153,5 +153,6 @@ class OpenAISTTProvider(Provider):
                         SpeechResultState.SUCCESS,
                     )
                 else:
-                    _LOGGER.error("%s", response.text)
-                    return SpeechResult("", SpeechResultState.ERROR)
+                    _LOGGER.error("%s", repr(response))
+                    return SpeechResult(repr(response), SpeechResultState.ERROR)
+
