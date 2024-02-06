@@ -147,7 +147,7 @@ class OpenAISTTProvider(Provider):
                 response = await client.post(url, headers=headers, data=data, files=files)
                 if response.status_code == 200:
                     return SpeechResult(
-                        response.text,
+                        response.json()["text"],
                         SpeechResultState.SUCCESS,
                     )
                 else:
