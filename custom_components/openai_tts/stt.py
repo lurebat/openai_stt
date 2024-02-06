@@ -126,6 +126,7 @@ class OpenAISTTProvider(Provider):
         # Your OpenAI API key
         headers = {
             'Authorization': f'Bearer {self._api_key}',
+            'api-key': self._api_key,
             'Content-Type': 'multipart/form-data'
         }
         # Prepare the data for the POST request
