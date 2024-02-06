@@ -1,5 +1,5 @@
 {
-    "name": "OpenAI STT for HACS",
+    "name": "OpenAI STT for HACS - lurebat",
     "homeassistant": "2023.9.0",
     "render_readme": true
 }
