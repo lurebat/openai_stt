@@ -113,7 +113,7 @@ class OpenAISTTProvider(Provider):
         async for chunk in stream:
             data += chunk
 
-        wav_stream = io.BytesIO()
+        wav_stream = io.BytesIO(data)
 
         with wave.open(wav_stream, 'w') as wav_file:
             wav_file.setnchannels(metadata.channel)
@@ -139,7 +139,6 @@ class OpenAISTTProvider(Provider):
             'file': ('filename.wav', wav, 'audio/wav')
         }
         data = {
-            'model': self._model,
             'language': self._language,
             'temperature': self._temperature,
             'prompt': self._prompt
@@ -153,6 +152,7 @@ class OpenAISTTProvider(Provider):
                         SpeechResultState.SUCCESS,
                     )
                 else:
-                    _LOGGER.error("%s", repr(response))
-                    return SpeechResult(repr(response), SpeechResultState.ERROR)
+                    body = await response.aread()
+                    _LOGGER.error("%s", repr(response) + " " + body.decode('utf-8'))
+                    return SpeechResult(" ", SpeechResultState.ERROR)
 
