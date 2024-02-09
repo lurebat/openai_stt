@@ -138,7 +138,7 @@ class OpenAISTTProvider(Provider):
             'file': ('audio.wav', wav_stream, 'audio/wav')
         }
         data = {
-            'language': self._language,
+           # 'language': self._language,
             'temperature': self._temperature,
             'prompt': self._prompt
         }
