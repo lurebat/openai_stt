@@ -125,6 +125,7 @@ class OpenAISTTProvider(Provider):
 
         async with openai.AsyncOpenAI(
             api_key=self._api_key,
+            base_url=self._url,
         ) as openai_client:
             try:
                 res = await openai_client.audio.transcriptions.create(
