@@ -143,5 +143,5 @@ class OpenAISTTProvider(Provider):
                     return SpeechResult(res.text, SpeechResultState.SUCCESS)
                 
                 except Exception as e:
-                    _LOGGER.error("Failed to transcribe audio: %s", e)
+                    _LOGGER.error("Failed to transcribe audio: %s", repr(e))
                     return SpeechResult(str(e), SpeechResultState.ERROR)
