@@ -1,11 +1,11 @@
 {
   "domain": "openai_stt",
   "name": "OpenAI STT",
-  "codeowners": ["@sfortis"],
+  "codeowners": ["@lurebat"],
   "dependencies": [],
-  "documentation": "https://github.com/sfortis/openai_tts/",
+  "documentation": "https://github.com/lurebat/openai_stt/",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/sfortis/openai_tts/issues",
-  "requirements": ["httpx>=0.26.0"],
-  "version": "0.1.0"
+  "issue_tracker": "https://github.com/lurebat/openai_stt/issues",
+  "requirements": ["openai"],
+  "version": "0.2.0"
 }

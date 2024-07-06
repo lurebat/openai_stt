@@ -3,7 +3,6 @@ Support for OpenAI STT.
 """
 import logging
 from typing import AsyncIterable
-import httpx
 import async_timeout
 import voluptuous as vol
 from homeassistant.components.tts import CONF_LANG
@@ -22,6 +21,8 @@ from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
 import wave
 import io
+import openai
+import azure.cognitiveservices.speech as speechsdk
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,21 +37,21 @@ CONF_TEMPERATURE = 'temperature'
 PLATFORM_SCHEMA = cv.PLATFORM_SCHEMA.extend({
     vol.Required(CONF_API_KEY): cv.string,
     vol.Optional(CONF_LANG, default=DEFAULT_LANG): cv.string,
-    vol.Optional(CONF_MODEL, default='whisper-1'): cv.string,
+    vol.Optional(CONF_MODEL, default='whisper'): cv.string,
     vol.Optional(CONF_URL, default=None): cv.string,
     vol.Optional(CONF_PROMPT, default=None): cv.string,
-    vol.Optional(CONF_TEMPERATURE, default=0): cv.positive_int,
+    vol.Optional(CONF_TEMPERATURE, default=0.1): cv.positive_float,
 })
 
 async def async_get_engine(hass, config, discovery_info=None):
     """Set up OpenAI STT speech component."""
     api_key = config[CONF_API_KEY]
-    language = config.get(CONF_LANG, DEFAULT_LANG)
+    languages = config.get(CONF_LANG, DEFAULT_LANG)
     model = config.get(CONF_MODEL)
     url = config.get('url')
     prompt = config.get('prompt')
     temperature = config.get('temperature')
-    return OpenAISTTProvider(hass, api_key, language, model, url, prompt, temperature)
+    return OpenAISTTProvider(hass, api_key, languages, model, url, prompt, temperature)
 
 class OpenAISTTProvider(Provider):
     """The OpenAI STT API provider."""
@@ -62,7 +63,7 @@ class OpenAISTTProvider(Provider):
         self._language = lang
         self._model = model
         self._url = url
-        self._prompt = prompt
+        self._prompt = prompt or f"You are transcribing a command to a virtual assistant. The possible languages are {self.supported_languages}." 
         self._temperature = temperature
 
     @property
@@ -117,41 +118,32 @@ class OpenAISTTProvider(Provider):
 
         with wave.open(wav_stream, 'w') as wav_file:
             wav_file.setnchannels(metadata.channel)
-            wav_file.setsampwidth(2)
+            wav_file.setsampwidth(metadata.bit_rate // 8)
             wav_file.setframerate(metadata.sample_rate)
 
             wav_file.writeframes(data)
             
         wav_stream.seek(0)
 
-
-
-        # OpenAI API endpoint for audio transcription
-        url = self._url or OPENAI_STT_URL
-        # Your OpenAI API key
-        headers = {
-            'Authorization': f'Bearer {self._api_key}',
-            'api-key': self._api_key,
-        }
-        # Prepare the data for the POST request
-        files = {
-            'file': ('audio.wav', wav_stream, 'audio/wav')
-        }
-        data = {
-           # 'language': self._language,
-            'temperature': self._temperature,
-            'prompt': self._prompt
-        }
         async with async_timeout.timeout(10):
-            async with httpx.AsyncClient() as client:
-                response = await client.post(url, headers=headers, data=data, files=files)
-                if response.status_code == 200:
-                    return SpeechResult(
-                        response.json()["text"],
-                        SpeechResultState.SUCCESS,
+            async with openai.AsyncAzureOpenAI(
+                api_key=self._api_key,
+                azure_endpoint=self._url
+            ) as openai_client:
+                try:
+                    res = await openai_client.audio.transcriptions.create(
+                        audio=wav_stream,
+                        model=self._model,
+                        prompt=self._prompt,
+                        temperature=self._temperature,
+                        response_format="text"
                     )
-                else:
-                    body = await response.aread()
-                    _LOGGER.error("%s", repr(response) + " " + body.decode('utf-8'))
-                    return SpeechResult(" ", SpeechResultState.ERROR)
 
+                    if res is None:
+                        return SpeechResult("Couldn't transcribe text", SpeechResultState.ERROR)
+                    
+                    return SpeechResult(res.text, SpeechResultState.SUCCESS)
+                
+                except Exception as e:
+                    _LOGGER.error("Failed to transcribe audio: %s", e)
+                    return SpeechResult(str(e), SpeechResultState.ERROR)
