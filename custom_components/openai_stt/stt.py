@@ -125,13 +125,11 @@ class OpenAISTTProvider(Provider):
 
         async with openai.AsyncOpenAI(
             api_key=self._api_key,
-            base_url=self._url
         ) as openai_client:
             try:
                 res = await openai_client.audio.transcriptions.create(
                     file=("audio.wav", wav_stream),
                     model=self._model,
-                    prompt=self._prompt,
                     temperature=self._temperature,
                     response_format="text",
                     timeout=20
