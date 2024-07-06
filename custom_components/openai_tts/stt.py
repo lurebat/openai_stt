@@ -130,7 +130,7 @@ class OpenAISTTProvider(Provider):
             ) as openai_client:
                 try:
                     res = await openai_client.audio.transcriptions.create(
-                        audio=wav_stream,
+                        file=wav_stream,
                         model=self._model,
                         prompt=self._prompt,
                         temperature=self._temperature,
