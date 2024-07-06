@@ -6,6 +6,6 @@
   "documentation": "https://github.com/lurebat/openai_stt/",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/lurebat/openai_stt/issues",
-  "requirements": ["openai"],
+  "requirements": ["openai~=1.35.10"],
   "version": "0.2.0"
 }

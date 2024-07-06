@@ -17,12 +17,10 @@ from homeassistant.components.stt import (
     SpeechResult,
     SpeechResultState,
 )
-from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
 import wave
 import io
 import openai
-import azure.cognitiveservices.speech as speechsdk
 
 _LOGGER = logging.getLogger(__name__)
 
