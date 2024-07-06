@@ -124,7 +124,7 @@ class OpenAISTTProvider(Provider):
         wav_stream.seek(0)
 
         async with async_timeout.timeout(20):
-            async with openai.OpenAI(
+            async with openai.AsyncOpenAI(
                 api_key=self._api_key,
                 base_url=self._url
             ) as openai_client:
