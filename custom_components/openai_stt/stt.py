@@ -123,25 +123,25 @@ class OpenAISTTProvider(Provider):
             
         wav_stream.seek(0)
 
-        async with async_timeout.timeout(20):
-            async with openai.AsyncOpenAI(
-                api_key=self._api_key,
-                base_url=self._url
-            ) as openai_client:
-                try:
-                    res = await openai_client.audio.transcriptions.create(
-                        file=wav_stream,
-                        model=self._model,
-                        prompt=self._prompt,
-                        temperature=self._temperature,
-                        response_format="text"
-                    )
+        async with openai.AsyncOpenAI(
+            api_key=self._api_key,
+            base_url=self._url
+        ) as openai_client:
+            try:
+                res = await openai_client.audio.transcriptions.create(
+                    file=("audio.wav", wav_stream),
+                    model=self._model,
+                    prompt=self._prompt,
+                    temperature=self._temperature,
+                    response_format="text",
+                    timeout=20
+                )
 
-                    if res is None:
-                        return SpeechResult("Couldn't transcribe text", SpeechResultState.ERROR)
-                    
-                    return SpeechResult(res.text, SpeechResultState.SUCCESS)
+                if res is None:
+                    return SpeechResult("Couldn't transcribe text", SpeechResultState.ERROR)
                 
-                except Exception as e:
-                    _LOGGER.error("Failed to transcribe audio: %s", repr(e))
-                    return SpeechResult(str(e), SpeechResultState.ERROR)
+                return SpeechResult(res.text, SpeechResultState.SUCCESS)
+            
+            except Exception as e:
+                _LOGGER.error("Failed to transcribe audio: %s", repr(e))
+                return SpeechResult(str(e), SpeechResultState.ERROR)
