@@ -125,10 +125,10 @@ class OpenAISTTProvider(Provider):
             
         wav_stream.seek(0)
 
-        async with async_timeout.timeout(10):
-            async with openai.AsyncAzureOpenAI(
+        async with async_timeout.timeout(20):
+            async with openai.OpenAI(
                 api_key=self._api_key,
-                azure_endpoint=self._url
+                base_url=self._url
             ) as openai_client:
                 try:
                     res = await openai_client.audio.transcriptions.create(
